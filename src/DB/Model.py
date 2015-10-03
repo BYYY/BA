@@ -5,7 +5,7 @@
 Model class for all entries
 """
 
-from src.DB.DAL import *
+import src.DB.DAL as DAL
 
 
 # governing class for all entries. this is a dict
@@ -43,32 +43,32 @@ class Model(dict):
 
     # todo: 同步
     def save(self):
-        update(self.__class__.table, **self)
+        DAL.update(self.__class__.table, **self)
         for key in self.__class__.fields:
             self[key] = self['_' + key]
 
     @classmethod
     def get(cls, **args):
-        selection = select_from(cls.table, **args)
+        selection = DAL.select_from(cls.table, **args)
         # 获取entry信息，创建新instance，initialize，生成list
         return [cls(**dict(zip(cls.fields, entry))) for entry in selection]
 
     @classmethod
     def add(cls, lst):
         if type(lst) == cls:
-            insert_into(cls.table, **lst._working_dict())
+            DAL.insert_into(cls.table, **lst._working_dict())
         else:
             # 是否需要保持事务性?
-            with connection():
+            with DAL.connection():
                 for entry in lst:
-                    insert_into(cls.table, **entry._working_dict())
+                    DAL.insert_into(cls.table, **entry._working_dict())
 
     # remove, 即可传入多个Entry也可传入list of Entry
     @classmethod
     def remove(cls, lst):
         if type(lst) == cls:
-            delete_from(cls.table, **lst._working_dict())
+            DAL.delete_from(cls.table, **lst._working_dict())
         else:
-            with connection():
+            with DAL.connection():
                 for entry in lst:
-                    delete_from(cls.table, **entry._working_dict())
+                    DAL.delete_from(cls.table, **entry._working_dict())

@@ -2,4 +2,6 @@ conf/
 *.html
 data/
 log/
-
+*~
+.DS_Store
+nohup.out

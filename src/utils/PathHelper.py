@@ -6,11 +6,13 @@ import sys
 import os
 
 
-# 增加package路径
 
-sys.path.append(os.path.abspath('..'))
+def configure_dir():
+    # 增加package路径
+
+    sys.path.append(os.path.abspath('..'))
 
 
-# 更改工作路径
+    # 更改工作路径
 
-os.chdir('..')
+    os.chdir('..')

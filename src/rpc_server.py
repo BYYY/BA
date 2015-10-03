@@ -1,19 +1,29 @@
 __author__ = 'Sapocaly'
 
+import utils.PathHelper
+utils.PathHelper.configure_dir()
+
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
+
+import src.DB.Entry as Entry
+import src.DB.DAL as DAL
+
+
+from utils import DBconfig
+
+
 
 Q = Queue.Queue()
 S = set()
 
+config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
+config_args = dict(zip(['host', 'user', 'passwd', 'database'],
+                           [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
+DAL.create_engine(**config_args)
 
 def save():
-    import src.DB.Entry as Entry
-    import src.DB.DAL as DAL
-    config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                           ['127.0.0.1', 'root', '192519251925', 'ba']))
     global Q
-    DAL.create_engine(**config_args)
     with DAL.connection():
         while not Q.empty():
             u = Q.get()
@@ -43,6 +53,7 @@ def get():
         return False
 
 
+# ip 0.0.0.0 for remote usage
 server = SimpleXMLRPCServer(("localhost", 8000))
 print "Listening on port 8000..."
 server.register_multicall_functions()
