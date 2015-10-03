@@ -33,4 +33,5 @@ multicall.put('www.centre.eSSsddu')
 multicall.put('www.centre.cSdoSm')
 multicall.save()
 result = multicall()
+
 print tuple(result)
