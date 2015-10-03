@@ -325,5 +325,3 @@ def update(table_name, **args):
     sql = "update {0} set {1} {2}".format(
         table_name, update_clause, where_clause)
     execute(sql)
-
-

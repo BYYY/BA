@@ -2,16 +2,16 @@ __author__ = 'Sapocaly'
 
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
-import utils.PathHelper
 
 Q = Queue.Queue()
 S = set()
+
 
 def save():
     import src.DB.Entry as Entry
     import src.DB.DAL as DAL
     config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                          ['127.0.0.1', 'root', '192519251925', 'ba']))
+                           ['127.0.0.1', 'root', '192519251925', 'ba']))
     global Q
     DAL.create_engine(**config_args)
     with DAL.connection():
@@ -19,7 +19,7 @@ def save():
             u = Q.get()
             t = Entry.Url(url=u)
             Entry.Url.add(t)
-            del(t)
+            del (t)
     print 'all saved!!!!!!!!!!!!!!!!'
 
 
@@ -33,6 +33,7 @@ def put(url):
         return True
     except Exception:
         return False
+
 
 def get():
     try:

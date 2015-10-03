@@ -72,5 +72,3 @@ class Model(dict):
             with connection():
                 for entry in lst:
                     delete_from(cls.table, **entry._working_dict())
-
-
