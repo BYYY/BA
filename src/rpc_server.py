@@ -31,6 +31,7 @@ def save():
             Entry.Url.add(t)
             del (t)
     print 'all saved!!!!!!!!!!!!!!!!'
+    return True
 
 
 def put(url):

@@ -29,8 +29,8 @@ import src.DB.DAL as DAL
 #ip 10.84.14.55 for remote usage
 proxy = xmlrpclib.ServerProxy("http://127.0.0.1:8000/")
 multicall = xmlrpclib.MultiCall(proxy)
-multicall.put('www.centre.edu')
-multicall.put('www.centre.com')
+multicall.put('www.centre.eSSsddu')
+multicall.put('www.centre.cSdoSm')
 multicall.save()
 result = multicall()
 print tuple(result)
