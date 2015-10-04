@@ -59,9 +59,9 @@ while True:
     multicall.get()
     result = multicall()
     start_url = tuple(result)[0]
-    html = fetch("www.baidu.com")
+    html = fetch(start_url)
     new_urls = parse_html(html)
-    save_html("www.baidu.com",html)
+    save_html(start_url,html)
 
 for url in new_urls:
     multicall.put(url)
