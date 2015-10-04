@@ -4,7 +4,6 @@ import urllib2
 
 import urllib
 import re
-import HTMLParser
 
 __author__ = 'Sapocaly'
 
@@ -18,7 +17,9 @@ utils.PathHelper.configure_dir()
 import src.DB.Entry as Entry
 import src.DB.DAL as DAL
 
+import urlfinder
 
+import base64
 #DB saving related
 # config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
 # config_args = dict(zip(['host', 'user', 'passwd', 'database'],
@@ -39,7 +40,7 @@ def fetch(url):
     return html
 
 def save_html(url,html):
-    import base64
+
     encoded_html = base64.b64encode(html)
     print encoded_html
     with DAL.connection():
@@ -47,35 +48,27 @@ def save_html(url,html):
         Entry.Page.add(t)
         del(t)
 
-def parse_html(html):
-##    reg = r'<a href="(.*)">(.*)</a>'
- #   findurl = re.compile(reg)
-#   urllist = re.findall(findurl,html)
-  #  print urllist
- #   return urllist
-    HTMLLinkBean htmlLinkBean = new HTMLLinkBean();
-    htmlLinkBean.setURL(html);
-    URL[] urls = htmlLinkBean.getLinks();
-
 
 config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
 config_args = dict(zip(['host', 'user', 'passwd', 'database'],
                        [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
 DAL.create_engine(**config_args)
-#html = fetch("http://www.baidu.com")
-#save_html("http://www.baidu.com",html)
-#while True:
-    #proxy = xmlrpclib.ServerProxy("http://127.0.0.1:8000/")
-   # multicall = xmlrpclib.MultiCall(proxy)
-    #multicall.get()
-    #result = multicall()
-start_url = 'http://www.baidu.com'
-html = fetch(start_url)
-new_urls = parse_html(start_url)
-    #save_html(start_url,html)
+
+
+while True:
+    proxy = xmlrpclib.ServerProxy("http://127.0.0.1:8000/")
+    multicall = xmlrpclib.MultiCall(proxy)
+    multicall.get()
+    result = multicall()
+
+    finder = urlfinder.urlfinder();
+    start_url = tuple(result)[0]
+    html = fetch(start_url)
+    new_urls = finder.feed(html)
+    save_html(start_url,html)
 
 for url in new_urls:
-    multicall.put(url)
+     multicall.put(url)
 
 
 
