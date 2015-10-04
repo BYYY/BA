@@ -36,7 +36,8 @@ def fetch(url):
 
 def save_html(url,html):
     import base64
-    encoded_html = base64.b64decode(html)
+    encoded_html = base64.b64encode(html)
+    print encoded_html
     with DAL.connection():
         t = Entry.Page(url=url, content=encoded_html)
         Entry.Page.add(t)
@@ -48,21 +49,22 @@ def parse_html(html):
 
 config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
 config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                           [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
+                       [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
 DAL.create_engine(**config_args)
-
+#html = fetch("http://www.baidu.com")
+#save_html("http://www.baidu.com",html)
 while True:
     proxy = xmlrpclib.ServerProxy("http://127.0.0.1:8000/")
     multicall = xmlrpclib.MultiCall(proxy)
     multicall.get()
     result = multicall()
     start_url = tuple(result)[0]
-    html = fetch(start_url)
+    html = fetch("www.baidu.com")
     new_urls = parse_html(html)
-    save_html(html)
+    save_html("www.baidu.com",html)
 
-    for url in new_urls:
-        multicall.put(url)
+for url in new_urls:
+    multicall.put(url)
 
 
 
