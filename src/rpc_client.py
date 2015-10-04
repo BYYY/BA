@@ -1,5 +1,6 @@
 #!usr/bin/env python
 # -*- coding: utf-8 -*-
+import urllib2
 
 __author__ = 'Sapocaly'
 
@@ -27,11 +28,31 @@ import src.DB.DAL as DAL
 
 #rpc cal related
 #ip 10.84.14.55 for remote usage
-proxy = xmlrpclib.ServerProxy("http://127.0.0.1:8000/")
-multicall = xmlrpclib.MultiCall(proxy)
-multicall.put('www.centre.eSSsddu')
-multicall.put('www.centre.cSdoSm')
-multicall.save()
-result = multicall()
 
-print tuple(result)
+def fetch(url):
+    response = urllib2.urlopen(url)
+    html = response.read()
+    return html
+
+def save_html(html):
+    pass
+
+def parse_html(html):
+
+    pass
+
+while True:
+    proxy = xmlrpclib.ServerProxy("http://127.0.0.1:8000/")
+    multicall = xmlrpclib.MultiCall(proxy)
+    multicall.get()
+    result = multicall()
+    start_url = tuple(result)[0]
+    html = fetch(start_url)
+    new_urls = parse_html(html)
+    save_html(html)
+
+    for url in new_urls:
+        multicall.put(url)
+
+
+
