@@ -35,6 +35,7 @@ def save():
 
 
 def put(url):
+    print 'en'
     try:
         global Q, S
         if not (url in S):
@@ -55,10 +56,11 @@ def get():
 
 
 # ip 0.0.0.0 for remote usage
-server = SimpleXMLRPCServer(("localhost", 8000))
+server = SimpleXMLRPCServer(("127.0.0.1", 8001))
 print "Listening on port 8000..."
 server.register_multicall_functions()
 server.register_function(put, 'put')
 server.register_function(get, 'get')
 server.register_function(save, 'save')
+print 'ready'
 server.serve_forever()
