@@ -6,3 +6,4 @@ log/
 .DS_Store
 nohup.out
 *.pyc
+.idea
