@@ -1,6 +1,5 @@
 import src.DB.DAL as DAL
-import urllib2
-from utils import DBconfig
+from src.utils import DBconfig
 import src.DB.Entry as Entry
 __author__ = 'Sapocaly'
 

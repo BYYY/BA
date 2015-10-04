@@ -1,9 +1,10 @@
 conf/
-*.html
 data/
 log/
+.idea
+
 *~
 .DS_Store
 nohup.out
 *.pyc
-.idea
+
