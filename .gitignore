@@ -4,5 +4,6 @@ data/
 log/
 *~
 .DS_Store
-.idea
 nohup.out
+*.pyc
+.idea
