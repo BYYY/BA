@@ -1,6 +1,7 @@
 conf/
 data/
 log/
+html/
 .idea
 
 *~

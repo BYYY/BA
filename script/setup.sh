@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+cd ..
+mkdir html
+mkdir log
+mkdir conf
+cd log
+mkdir hourly
+cd hourly
+mkdir DB
