@@ -49,8 +49,10 @@ class Model(dict):
 
     @classmethod
     def get(cls, **args):
+        print 'start getting'
         selection = DAL.select_from(cls.table, **args)
         # 获取entry信息，创建新instance，initialize，生成list
+        print 'selection!!!'
         return [cls(**dict(zip(cls.fields, entry))) for entry in selection]
 
     @classmethod

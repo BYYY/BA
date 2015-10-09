@@ -81,6 +81,8 @@ while True:
         print tuple(multicall())
 
         DbTransactor.insert_html(start_url,html)
+        print 'enenenenne'
+        DbTransactor.save_html(start_url)
 
         print 'xiexiexie'
 
