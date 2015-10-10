@@ -28,11 +28,13 @@ class Transactor:
         f.close()
 
 
+def main():
+    config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
+    config_args = dict(zip(['host', 'user', 'passwd', 'database'],
+                           [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
+    DAL.create_engine(**config_args)
 
-config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
-config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                       [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
-DAL.create_engine(**config_args)
-
-trans = Transactor()
-trans.save_html(25000)
+    trans = Transactor()
+    trans.save_html()
+if __name__ == '__main__':
+    main()
