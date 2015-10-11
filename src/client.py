@@ -13,8 +13,8 @@ utils.PathHelper.configure_dir()
 
 
 import src.DB.DAL as DAL
-import src.DB.html_db_transactor as html_db_transactor
-import urlfinder
+import src.utils.html_db_transactor as html_db_transactor
+from src.core import urlfinder
 
 
 #DB saving related
