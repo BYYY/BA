@@ -4,7 +4,7 @@ import urllib2
 
 __author__ = 'Sapocaly'
 
-from utils import DBconfig
+from src.config import DBconfig
 
 import xmlrpclib
 

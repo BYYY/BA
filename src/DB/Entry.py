@@ -14,5 +14,9 @@ class Page(Model):
 
 
 class Url(Model):
-    table = 'cached_url'  # table name is page_content
+    table = 'cached_url'  # table name cached_url
     fields = ['url']
+
+class UrlMap(Model):
+    table = 'url_map'
+    fields = ['id', 'url', 'hashed_name', 'hashed_folder']

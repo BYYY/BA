@@ -1,12 +1,11 @@
 __author__ = 'Yifan Li'
 
 import base64
+
 import src.DB.Entry as Entry
-
-
-from src.utils import DBconfig
-
+from src.config import DBconfig
 import src.DB.DAL as DAL
+
 
 class Transactor:
 

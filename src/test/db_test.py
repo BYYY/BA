@@ -1,5 +1,5 @@
 import src.DB.DAL as DAL
-from src.utils import DBconfig
+from src.config import DBconfig
 import src.DB.Entry as Entry
 __author__ = 'Sapocaly'
 

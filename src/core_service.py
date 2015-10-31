@@ -1,40 +1,41 @@
-__author__ = 'Sapocaly'
+"""
+this is the main service for the server side, it's centralized and not memoryless
+"""
 
 import utils.PathHelper
+
 utils.PathHelper.configure_dir()
 
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
 
-import src.DB.Entry as Entry
 import src.DB.DAL as DAL
 
+from src.config import DBconfig
 
-from utils import DBconfig
+__author__ = 'Sapocaly'
 
-
+config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
+config_args = dict(zip(['host', 'user', 'passwd', 'database'],
+                       [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
+DAL.create_engine(**config_args)
 
 Q = Queue.Queue()
 S = set()
 
-config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
-config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                           [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
-DAL.create_engine(**config_args)
-
-def save():
-    global Q
-    with DAL.connection():
-        while not Q.empty():
-            u = Q.get()
-            t = Entry.Url(url=u)
-            Entry.Url.add(t)
-            del (t)
-    print 'all saved!!!!!!!!!!!!!!!!'
-    return True
-
+def get_config():
+    """
+    client side get all server side config from this centralized service
+    :return:
+    """
+    pass
 
 def put(url):
+    """
+    put the url to the queue
+    :param url:
+    :return:
+    """
     print 'en'
     try:
         global Q, S
@@ -48,6 +49,10 @@ def put(url):
 
 
 def get():
+    """
+    get the top url from the queue
+    :return:
+    """
     try:
         global Q
         return Q.get()
@@ -55,12 +60,21 @@ def get():
         return False
 
 
-# ip 0.0.0.0 for remote usage
+def put_again(url):
+    """
+    put the failed url to the queue again, will check the failure counts by the hashtable
+    :param url:
+    :return:
+    """
+    pass
+
+
 server = SimpleXMLRPCServer(("127.0.0.1", 8001))
 print "Listening on port 8000..."
 server.register_multicall_functions()
 server.register_function(put, 'put')
 server.register_function(get, 'get')
-server.register_function(save, 'save')
+server.register_function(put_again, 'put_again')
+server.register_function(get_config, 'get_config')
 print 'ready'
 server.serve_forever()
