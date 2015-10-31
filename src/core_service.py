@@ -2,15 +2,11 @@
 this is the main service for the server side, it's centralized and not memoryless
 """
 
-import utils.PathHelper
-
-utils.PathHelper.configure_dir()
-
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
 
+import utils.PathHelper
 import src.DB.DAL as DAL
-
 from src.config import DBconfig
 
 __author__ = 'Sapocaly'
@@ -20,15 +16,18 @@ config_args = dict(zip(['host', 'user', 'passwd', 'database'],
                        [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
 DAL.create_engine(**config_args)
 
-Q = Queue.Queue()
-S = set()
+QUEUE = Queue.Queue()
+BLOOM_FILTER = set()
+HASH_MAP = {}
+
 
 def get_config():
     """
     client side get all server side config from this centralized service
     :return:
     """
-    pass
+    return None
+
 
 def put(url):
     """
@@ -36,13 +35,11 @@ def put(url):
     :param url:
     :return:
     """
-    print 'en'
     try:
-        global Q, S
-        if not (url in S):
-            Q.put(url)
-            S.add(url)
-            print url
+        global QUEUE, BLOOM_FILTER
+        if not (url in BLOOM_FILTER):
+            QUEUE.put(url)
+            BLOOM_FILTER.add(url)
         return True
     except Exception:
         return False
@@ -54,8 +51,8 @@ def get():
     :return:
     """
     try:
-        global Q
-        return Q.get()
+        global QUEUE
+        return QUEUE.get()
     except Exception:
         return False
 
@@ -66,7 +63,14 @@ def put_again(url):
     :param url:
     :return:
     """
-    pass
+    try:
+        return True
+    except Exception:
+        return False
+
+
+def admin(adminCode):
+    return True
 
 
 server = SimpleXMLRPCServer(("127.0.0.1", 8001))
@@ -76,5 +80,6 @@ server.register_function(put, 'put')
 server.register_function(get, 'get')
 server.register_function(put_again, 'put_again')
 server.register_function(get_config, 'get_config')
+server.register_function(admin, 'admin')
 print 'ready'
 server.serve_forever()
