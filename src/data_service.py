@@ -5,34 +5,53 @@ can be distributed
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import hashlib
 import os
+import xmlrpclib
 
 import utils.PathHelper
+
+utils.PathHelper.configure_dir()
+
 from src.DB.Entry import UrlMap
 import src.DB.DAL as DAL
-from src.config import DBconfig
+import src.config.ConfigConstant as ConfigConstant
+import src.utils.ip_helper
 
-config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
+db_config = ConfigConstant.DB_CONFIG
 config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                       [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
+                       [db_config.DB_HOST, db_config.DB_USER, db_config.DB_PASSWORD, db_config.DB_NAME]))
 DAL.create_engine(**config_args)
+
+deploy_config = ConfigConstant.DEPLOY_CONFIG
+
 
 def hash_with_sha224(url):
     return hashlib.sha224(url).hexdigest()
 
+
 def hash_with_md5(url):
     return hashlib.md5(url).hexdigest()
+
 
 def get_name_and_folder(url):
     return hash_with_md5(url), hash_with_sha224(url)[-2:]
 
 
-
 def __save_to_file(content, path, fname):
-    #may want to assume that dir is exist
+    # may want to assume that dir is exist
     if not os.path.isdir(path):
         os.mkdir(path)
     with open(path + fname + '.html', 'w') as f:
         f.write(content)
+
+
+def register_service(core_address, core_port):
+    global deploy_config
+    ip = '127.0.0.1' if deploy_config.BINDING_ADDRESS == '127.0.0.1' else src.utils.ip_helper.get_lan_ip()
+    proxy = xmlrpclib.ServerProxy('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
+    multicall = xmlrpclib.MultiCall(proxy)
+    multicall.register_service('DATA-SERVICE', ip, deploy_config.DATA_PORT)
+    result = multicall()
+    print tuple(result)[0]
 
 
 def save(url, html):
@@ -40,9 +59,9 @@ def save(url, html):
     this is the only open api for saving fetched content.
     main reason for using an api service instead of letting client connect to the datacenter is security
     also, we may define any save function later for different content
-    :param url:
-    :param html:
-    :return:
+    :param url: url
+    :param html: html string
+    :return: true/false
     """
     try:
         name, folder = get_name_and_folder(url)
@@ -56,9 +75,10 @@ def save(url, html):
 
 
 if __name__ == '__main__':
-    server = SimpleXMLRPCServer(("127.0.0.1", 8001))
-    print "starting service......"
+    server = SimpleXMLRPCServer((deploy_config.BINDING_ADDRESS, int(deploy_config.DATA_PORT)))
     server.register_multicall_functions()
     server.register_function(save, 'save')
-    print 'ready for service "save"'
+    print "Service name: data-service"
+    print "binding address:", deploy_config.BINDING_ADDRESS + ":" + deploy_config.DATA_PORT
+    register_service(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT)
     server.serve_forever()

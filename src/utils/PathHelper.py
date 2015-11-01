@@ -10,5 +10,3 @@ def configure_dir():
     sys.path.append(os.path.abspath('..'))
     # 更改工作路径
     os.chdir('..')
-
-configure_dir()
