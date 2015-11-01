@@ -7,18 +7,19 @@ import Queue
 
 # 这是一个限定内存利用的queue
 
-class SmartQueue(Queue.Queue):
-    def __init__(self):
-        #设置初始容量
-        Queue.__init__(self)
+class SmartQueue():
+    def __init__(self, threshold= 10000):
+        self.threshold = threshold
+        self.q = Queue.Queue(maxsize = int(threshold * 1.2))
+        self.size = 0
 
-    def put(self):
-        #对外接口
-        pass
+    def put(self, item):
+        self.q.put(item)
+        self.size += 1
 
     def get(self):
-        #对外接口
-        pass
+        self.size -= 1
+        return self.q.get()
 
     def save(self):
         #对外接口

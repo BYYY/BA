@@ -24,16 +24,16 @@ DAL.create_engine(**config_args)
 deploy_config = ConfigConstant.DEPLOY_CONFIG
 
 
-def hash_with_sha224(url):
+def __hash_with_sha224(url):
     return hashlib.sha224(url).hexdigest()
 
 
-def hash_with_md5(url):
+def __hash_with_md5(url):
     return hashlib.md5(url).hexdigest()
 
 
-def get_name_and_folder(url):
-    return hash_with_md5(url), hash_with_sha224(url)[-2:]
+def __get_name_and_folder(url):
+    return __hash_with_md5(url), __hash_with_sha224(url)[-2:]
 
 
 def __save_to_file(content, path, fname):
@@ -44,14 +44,15 @@ def __save_to_file(content, path, fname):
         f.write(content)
 
 
-def register_service(core_address, core_port):
+def __register_service(core_address, core_port):
     global deploy_config
     ip = '127.0.0.1' if deploy_config.BINDING_ADDRESS == '127.0.0.1' else src.utils.ip_helper.get_lan_ip()
     proxy = xmlrpclib.ServerProxy('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
     multicall = xmlrpclib.MultiCall(proxy)
     multicall.register_service('DATA-SERVICE', ip, deploy_config.DATA_PORT)
     result = multicall()
-    print tuple(result)[0]
+    if not tuple(result)[0]:
+        raise Exception()
 
 
 def save(url, html):
@@ -64,7 +65,7 @@ def save(url, html):
     :return: true/false
     """
     try:
-        name, folder = get_name_and_folder(url)
+        name, folder = __get_name_and_folder(url)
         map = UrlMap(url=url, hashed_name=name, hashed_folder=folder)
         UrlMap.add(map)
         path = 'data/html/{}/'.format(folder)
@@ -80,5 +81,5 @@ if __name__ == '__main__':
     server.register_function(save, 'save')
     print "Service name: data-service"
     print "binding address:", deploy_config.BINDING_ADDRESS + ":" + deploy_config.DATA_PORT
-    register_service(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT)
+    __register_service(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT)
     server.serve_forever()
