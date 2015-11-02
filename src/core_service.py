@@ -5,7 +5,6 @@ this is the main service for the server side, it's centralized and not memoryles
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
 import pybloom
-from src.model.SmartQueue import SmartQueue
 
 import utils.PathHelper
 
@@ -23,7 +22,7 @@ DAL.create_engine(**config_args)
 
 deploy_config = ConfigConstant.DEPLOY_CONFIG
 
-QUEUE = SmartQueue.SmartQueue(threshold=1000)
+QUEUE = Queue.Queue()
 BLOOM_FILTER = pybloom.BloomFilter(capacity=10000000, error_rate=0.000001)
 HASH_MAP = {}
 

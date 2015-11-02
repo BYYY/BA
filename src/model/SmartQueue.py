@@ -12,14 +12,20 @@ class SmartQueue():
         self.threshold = threshold
         self.q = Queue.Queue(maxsize = int(threshold * 1.2))
         self.size = 0
+        self.q_size = 0
 
     def put(self, item):
-        self.q.put(item)
+        if self.q_size < self.threshold:
+            self.q.put(item)
+            self.q_size += 1
+        else:
+            None
         self.size += 1
 
     def get(self):
         self.size -= 1
         return self.q.get()
+
 
     def save(self):
         #对外接口
@@ -28,3 +34,6 @@ class SmartQueue():
     def load(self):
         #对外接口
         pass
+
+    def size(self):
+        return self.size

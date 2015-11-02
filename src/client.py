@@ -1,94 +1,105 @@
 #!usr/bin/env python
 # -*- coding: utf-8 -*-
+import base64
 import urllib2
+import xmlrpclib
+import HTMLParser
+from urlparse import urlparse
+
+import utils.PathHelper
+
+utils.PathHelper.configure_dir()
 
 __author__ = 'Sapocaly'
 
-from src.config import DBconfig
-
-import xmlrpclib
-
-import utils.PathHelper
-utils.PathHelper.configure_dir()
-
-
-import src.DB.DAL as DAL
-import src.utils.html_db_transactor as html_db_transactor
-from src.core import urlfinder
-
-
-#DB saving related
-# config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
-# config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-#                           [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
-# DAL.create_engine(**config_args)
-#
-# t = Entry.Page(url='test_url', content='糖糖糖')
-# Entry.Page.add(t)
-# del (t)
-
-
-#rpc cal related
-#ip 10.84.14.55 for remote usage
 
 def fetch(url):
-    print 'starting fetch ',url
-    response = urllib2.urlopen(url)
+    response = urllib2.urlopen(url, timeout=8)
     html = response.read()
-    print 'fetched!!!!!!!!!!!!!!!!!!!!'
     return html
 
 
-        #del(t)
+class SimpleMultiCall:
+    def __init__(self, server):
+        self.multicall = xmlrpclib.MultiCall(server)
+        self.server = server
+
+    def __getattr__(self, name):
+        return self.multicall.__getattr__(name)
+
+    def __call__(self):
+        result = self.multicall.__call__()
+        self.multicall = xmlrpclib.MultiCall(self.server)
+        return result
 
 
-config = DBconfig.DBConfig("conf/byyy_ba_db.cfg")
-config_args = dict(zip(['host', 'user', 'passwd', 'database'],
-                       [config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME]))
-DAL.create_engine(**config_args)
-DbTransactor = html_db_transactor.Transactor()
-proxy = xmlrpclib.ServerProxy("http://10.84.14.55:8001/")
-multicall = xmlrpclib.MultiCall(proxy)
+def get_muticall(url):
+    proxy = xmlrpclib.ServerProxy(url)
+    return SimpleMultiCall(proxy)
 
-multicall.put('http://www.kenrockwell.com')
 
-result = multicall()
-print tuple(result)[0]
+class Urlfinder(HTMLParser.HTMLParser):
+    def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self.urls = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            for name, value in attrs:
+                if name == 'href':
+                    self.urls.append(value)
+
+
+def is_valid_url(url):
+    o = urlparse(url)
+    if o.scheme != 'http':
+        return False
+    if o.netloc != 'www.kenrockwell.com':
+        return False
+    return True
+
+
+# initialize core server
+core_server = get_muticall("http://127.0.0.1:8833/")
+
+core_server.put('http://www.kenrockwell.com')
+
+# get data server config
+core_server.get_config()
+success, config = core_server()
+data_addresses = config['DATA-SERVICE']
+ip, port = data_addresses[0]
+
+# initialize data server
+data_server = get_muticall("http://{}:{}/".format(ip, port))
+
+# initialize variable
+finder = Urlfinder()
 
 while True:
-    print 'this is a loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
     try:
-        proxy = xmlrpclib.ServerProxy("http://10.84.14.55:8001/")
-        multicall = xmlrpclib.MultiCall(proxy)
-        multicall.get()
-        result = multicall()
-
-        finder = urlfinder.urlfinder();
+        # dequeue url
+        core_server.get()
+        result = core_server()
         start_url = tuple(result)[0]
+        print 'start:', start_url
 
+        # fetch html
         html = fetch(start_url)
+
+        # save html
+        data_server.save(start_url, base64.b64encode(html))
+        data_server()
+
+        # parse for new urls
         finder.feed(html)
         new_urls = finder.urls
 
-        print 'hahaha'
-        proxy = xmlrpclib.ServerProxy("http://10.84.14.55:8001/")
-        multicall = xmlrpclib.MultiCall(proxy)
+        # enqueue new urls
         for url in new_urls:
-            print url
-            multicall.put(url)
-        print 'huehuehue'
-
-        print tuple(multicall())
-
-        DbTransactor.insert_html(start_url,html)
-        print 'enenenenne'
-        DbTransactor.save_html(start_url)
-
-        print 'xiexiexie'
-
+            if is_valid_url(url):
+                print url
+                core_server.put(url)
+        core_server()
     except Exception as e:
         print e
-        print 'oops!!!!!!!!!!!'
-
-
-

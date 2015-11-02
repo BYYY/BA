@@ -3,6 +3,7 @@ this is a memoryless service for saving data
 can be distributed
 """
 from SimpleXMLRPCServer import SimpleXMLRPCServer
+import base64
 import hashlib
 import os
 import xmlrpclib
@@ -66,10 +67,13 @@ def save(url, html):
     """
     try:
         name, folder = __get_name_and_folder(url)
+        print name
         map = UrlMap(url=url, hashed_name=name, hashed_folder=folder)
         UrlMap.add(map)
+        print 'ok'
         path = 'data/html/{}/'.format(folder)
-        __save_to_file(html, path, name)
+        __save_to_file(base64.b64decode(html), path, name)
+        print 'ok'
         return True
     except Exception:
         return False
