@@ -3,7 +3,7 @@
 import base64
 import xmlrpclib
 import HTMLParser
-from urlparse import urlparse
+from urlparse import urlparse, urljoin
 
 import utils.PathHelper
 
@@ -14,6 +14,7 @@ from src.config import ConfigConstant
 
 __author__ = 'Sapocaly'
 
+import time
 
 class Urlfinder(HTMLParser.HTMLParser):
     def __init__(self):
@@ -46,20 +47,22 @@ def get_muticall(url):
     return SimpleMultiCall(proxy)
 
 
-def is_valid_url(url):
+def valid_url(url):
     o = urlparse(url)
-    if o.scheme != 'http':
+    if o.scheme == '' and o.netloc == '':
+        return urljoin('http://www.centre.edu', url)
+    if o.scheme != 'http' and o.scheme != 'https':
         return False
-    if o.netloc != 'www.zhihu.com':
+    if o.netloc != 'www.centre.edu':
         return False
-    return True
+    return url
 
 
 # initialize core server
 deploy_config = ConfigConstant.DEPLOY_CONFIG
 core_server=get_muticall('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
 
-core_server.put('http://www.zhihu.com')
+core_server.put(['http://www.centre.edu'])
 
 # get data server config
 core_server.get_config()
@@ -79,11 +82,13 @@ data_server = get_muticall("http://{}:{}/".format(ip, port))
 # initialize variable
 finder = Urlfinder()
 print 'initialize fetcher...'
-fetcher = fetcher.ZhihuFetcher(email='sym1all@hotmail.com', password='192519251925')
+#fetcher = fetcher.ZhihuFetcher(email='sym1all@hotmail.com', password='192519251925')
+fetcher = fetcher.BaseFetcher()
 print 'fetcher initialized:{}'.format(fetcher.__class__)
 
 while True:
     try:
+        core_server=get_muticall('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
         # dequeue url
         core_server.get()
         result = core_server()
@@ -91,20 +96,29 @@ while True:
         print start_url
 
         # fetch html
+        stamp_a = time.time()
         html = fetcher.fetch(start_url)
+        print 'fetch cost:{}'.format(time.time() - stamp_a)
 
         # save html
+        stamp_a = time.time()
         data_server.save(start_url, base64.b64encode(html))
         data_server()
+        print 'save cost:{}'.format(time.time() - stamp_a)
 
         # parse for new urls
         finder.feed(html.decode('utf-8'))
         new_urls = finder.urls
 
         # enqueue new urls
+        url_list = []
         for url in new_urls:
-            if is_valid_url(url):
-                core_server.put(url)
+            url = valid_url(url)
+            if url:
+                url_list.append(url)
+        core_server.put(url_list)
+        stamp_a = time.time()
         core_server()
+        print 'put cost:{}'.format(time.time() - stamp_a)
     except Exception as e:
         print e

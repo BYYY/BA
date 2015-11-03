@@ -1,11 +1,21 @@
 # -*- coding:utf-8 -*-
 import re
 import os
+import urllib2
 
 import requests
 
 __author__ = 'Sapocaly'
 
+
+class BaseFetcher:
+    def __init__(self):
+        pass
+
+    def fetch(self, url):
+        res = urllib2.urlopen(url, timeout=10)
+        html = res.read()
+        return html
 
 class ZhihuFetcher:
     def __init__(self, email, password):

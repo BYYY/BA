@@ -6,6 +6,7 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
 
 import pybloom
+import thread
 
 import utils.PathHelper
 
@@ -13,7 +14,7 @@ utils.PathHelper.configure_dir()
 
 import src.DB.DAL as DAL
 import src.config.ConfigConstant as ConfigConstant
-
+import time
 __author__ = 'Sapocaly'
 
 
@@ -47,17 +48,26 @@ def get_config():
     return SERVICE_MAP
 
 
-def put(url):
+
+def __put(urls):
+    stamp_a = time.time()
+    global QUEUE, BLOOM_FILTER
+    for url in urls:
+        if not (url in BLOOM_FILTER):
+            #multi thread problem
+            QUEUE.put(url)
+            BLOOM_FILTER.add(url)
+    print 'avg cost:{}'.format((time.time() - stamp_a)/len(urls))
+
+##bottle neck!!!!!
+def put(urls):
     """
     put the url to the queue
     :param url:
     :return:
     """
     try:
-        global QUEUE, BLOOM_FILTER
-        if not (url in BLOOM_FILTER):
-            QUEUE.put(url)
-            BLOOM_FILTER.add(url)
+        __put(urls)
         return True
     except Exception:
         return False
