@@ -57,7 +57,7 @@ def is_valid_url(url):
 
 # initialize core server
 deploy_config = ConfigConstant.DEPLOY_CONFIG
-core_server=SimpleMultiCall('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
+core_server=get_muticall('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
 
 core_server.put('http://www.zhihu.com')
 
