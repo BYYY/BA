@@ -109,6 +109,7 @@ while True:
         # parse for new urls
         finder.feed(html.decode('utf-8'))
         new_urls = finder.urls
+        finder.urls = []
 
         # enqueue new urls
         url_list = []

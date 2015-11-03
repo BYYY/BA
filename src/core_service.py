@@ -57,7 +57,9 @@ def __put(urls):
             #multi thread problem
             QUEUE.put(url)
             BLOOM_FILTER.add(url)
+    print 'total cost:{}'.format((time.time() - stamp_a))
     print 'avg cost:{}'.format((time.time() - stamp_a)/len(urls))
+    print 'current queue size:{}'.format(QUEUE.qsize())
 
 ##bottle neck!!!!!
 def put(urls):
