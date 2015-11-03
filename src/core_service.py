@@ -4,6 +4,7 @@ this is the main service for the server side, it's centralized and not memoryles
 
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import Queue
+
 import pybloom
 
 import utils.PathHelper
@@ -15,17 +16,25 @@ import src.config.ConfigConstant as ConfigConstant
 
 __author__ = 'Sapocaly'
 
+
+# initialize connectioin to DB
 db_config = ConfigConstant.DB_CONFIG
 config_args = dict(zip(['host', 'user', 'passwd', 'database'],
                        [db_config.DB_HOST, db_config.DB_USER, db_config.DB_PASSWORD, db_config.DB_NAME]))
 DAL.create_engine(**config_args)
 
+# load deploy config
 deploy_config = ConfigConstant.DEPLOY_CONFIG
 
-QUEUE = Queue.Queue()
-BLOOM_FILTER = pybloom.BloomFilter(capacity=10000000, error_rate=0.000001)
-HASH_MAP = {}
 
+# initialize data structures
+# queue for urls
+QUEUE = Queue.Queue()
+# BF for checking redundency
+BLOOM_FILTER = pybloom.BloomFilter(capacity=10000000, error_rate=0.000001)
+# hash map for url retry
+HASH_MAP = {}
+# for server config
 SERVICE_MAP = {'DATA-SERVICE': [], 'LOG-SERVICE': []}
 
 
@@ -34,7 +43,7 @@ def get_config():
     client side get all server side config from this centralized service
     :return:
     """
-    global  SERVICE_MAP
+    global SERVICE_MAP
     return SERVICE_MAP
 
 
@@ -98,8 +107,8 @@ def register_service(service_name, address, port):
 
 
 def admin(adminCode):
-
     return True
+
 
 def save():
     try:
@@ -107,7 +116,6 @@ def save():
         return True
     except Exception:
         return False
-
 
 
 server = SimpleXMLRPCServer((deploy_config.BINDING_ADDRESS, int(deploy_config.CORE_PORT)))

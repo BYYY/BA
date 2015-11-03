@@ -1,7 +1,6 @@
 #!usr/bin/env python
 # -*- coding: utf-8 -*-
 import base64
-import urllib2
 import xmlrpclib
 import HTMLParser
 from urlparse import urlparse
@@ -10,13 +9,22 @@ import utils.PathHelper
 
 utils.PathHelper.configure_dir()
 
+import src.core.fetcher as fetcher
+from src.config import ConfigConstant
+
 __author__ = 'Sapocaly'
 
 
-def fetch(url):
-    response = urllib2.urlopen(url, timeout=8)
-    html = response.read()
-    return html
+class Urlfinder(HTMLParser.HTMLParser):
+    def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self.urls = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            for name, value in attrs:
+                if name == 'href':
+                    self.urls.append(value)
 
 
 class SimpleMultiCall:
@@ -38,43 +46,41 @@ def get_muticall(url):
     return SimpleMultiCall(proxy)
 
 
-class Urlfinder(HTMLParser.HTMLParser):
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.urls = []
-
-    def handle_starttag(self, tag, attrs):
-        if tag == 'a':
-            for name, value in attrs:
-                if name == 'href':
-                    self.urls.append(value)
-
-
 def is_valid_url(url):
     o = urlparse(url)
     if o.scheme != 'http':
         return False
-    if o.netloc != 'www.kenrockwell.com':
+    if o.netloc != 'www.zhihu.com':
         return False
     return True
 
 
 # initialize core server
-core_server = get_muticall("http://127.0.0.1:8833/")
+deploy_config = ConfigConstant.DEPLOY_CONFIG
+core_server=SimpleMultiCall('http://{}:{}/'.format(deploy_config.CORE_ADDRESS, deploy_config.CORE_PORT))
 
-core_server.put('http://www.kenrockwell.com')
+core_server.put('http://www.zhihu.com')
 
 # get data server config
 core_server.get_config()
+print 'initialize connection to core-server...'
+print 'getting configurations...'
 success, config = core_server()
 data_addresses = config['DATA-SERVICE']
 ip, port = data_addresses[0]
+print 'configurations:'
+print config
+
 
 # initialize data server
+print 'initialize connection to data-server:{}:{}...'.format(ip, port)
 data_server = get_muticall("http://{}:{}/".format(ip, port))
 
 # initialize variable
 finder = Urlfinder()
+print 'initialize fetcher...'
+fetcher = fetcher.ZhihuFetcher(email='sym1all@hotmail.com', password='192519251925')
+print 'fetcher initialized:{}'.format(fetcher.__class__)
 
 while True:
     try:
@@ -82,23 +88,22 @@ while True:
         core_server.get()
         result = core_server()
         start_url = tuple(result)[0]
-        print 'start:', start_url
+        print start_url
 
         # fetch html
-        html = fetch(start_url)
+        html = fetcher.fetch(start_url)
 
         # save html
         data_server.save(start_url, base64.b64encode(html))
         data_server()
 
         # parse for new urls
-        finder.feed(html)
+        finder.feed(html.decode('utf-8'))
         new_urls = finder.urls
 
         # enqueue new urls
         for url in new_urls:
             if is_valid_url(url):
-                print url
                 core_server.put(url)
         core_server()
     except Exception as e:
